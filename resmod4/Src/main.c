@@ -40,7 +40,7 @@
 #include "stm32l4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
