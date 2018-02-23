@@ -54,7 +54,7 @@ TIM_HandleTypeDef htim2;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-uint8_t DataToSend[2] = {0x80, 0x00};
+uint8_t DataToSend[2] = {0xaf, 0x00};
 uint8_t buffer_spi[3];
 
 /* USER CODE END PV */
@@ -109,10 +109,40 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   DWT_Delay_Init ();
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_RESET);
+
 
   HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_Delay(100);
+
+
+  HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, (uint8_t*)(DataToSend), 2, 50);
+  HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);	//DAC done
+
+  HAL_Delay(100);
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_SET);
+  DWT_Delay_us (10);  //3us CNV pulse required
+  //HAL_Delay(1);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_RESET);
+  DWT_Delay_us (1);
+  HAL_SPI_Receive(&hspi3, (uint8_t*)buffer_spi, 3,50);
+
+  HAL_Delay(100);
+
+
+  HAL_Delay(100);
+
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_SET);
+    DWT_Delay_us (10);  //3us CNV pulse required
+    //HAL_Delay(1);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_RESET);
+    DWT_Delay_us (1);
+    HAL_SPI_Receive(&hspi3, (uint8_t*)buffer_spi, 3,50);
+
+    HAL_Delay(100);
 
   /* USER CODE END 2 */
 
@@ -350,16 +380,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim2)
     	HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_RESET);
     	HAL_SPI_Transmit(&hspi2, (uint8_t*)(DataToSend), 2, 50);
     	HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);	//DAC done
-    	//HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+
 
     	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_SET);
-    	DWT_Delay_us (3);  //3us CNV pulse required
+    	DWT_Delay_us (4);  //3us CNV pulse required
     	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_RESET);
-
-
+    	DWT_Delay_us (1);
     	HAL_SPI_Receive(&hspi3, (uint8_t*)buffer_spi, 3,50);
 
-		HAL_GPIO_TogglePin(GPIOC, I_GAIN_G2_Pin); //just debugggin gindicator
+
+		HAL_GPIO_TogglePin(GPIOC, I_GAIN_G2_Pin); //just a debuggin gindicator
     }
 }
 
