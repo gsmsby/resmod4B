@@ -41,6 +41,8 @@
 
 /* USER CODE BEGIN Includes */
 #include "arm_math.h"
+#include "dwt_stm32_delay.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -53,6 +55,7 @@ TIM_HandleTypeDef htim2;
 /* Private variables ---------------------------------------------------------*/
 
 uint8_t DataToSend[2] = {0x80, 0x00};
+uint8_t buffer_spi[3];
 
 /* USER CODE END PV */
 
@@ -105,14 +108,11 @@ int main(void)
   MX_SPI3_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  DWT_Delay_Init ();
+
   HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_Delay(100);
-
-  uint8_t buffer_spi[3];
- /* HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_RESET);
-  HAL_SPI_Transmit(&hspi2, (uint8_t*)(DataToSend), 2, 50);
-  HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);*/
 
   /* USER CODE END 2 */
 
@@ -202,7 +202,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   //hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -347,16 +347,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim2)
 {
     if (htim2->Instance==TIM2) //check if the interrupt comes from TIM2
     {
-    	//HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    	//HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-
-    	//HAL_SPI_Transmit(&hspi2, (uint8_t*)(DataToSend), 2, 50);
     	HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_RESET);
     	HAL_SPI_Transmit(&hspi2, (uint8_t*)(DataToSend), 2, 50);
-    	HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);
+    	HAL_GPIO_WritePin(GPIOA, AD5541_CS_Pin, GPIO_PIN_SET);	//DAC done
     	//HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 
-		HAL_GPIO_TogglePin(GPIOC, I_GAIN_G2_Pin);
+    	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_SET);
+    	DWT_Delay_us (3);  //3us CNV pulse required
+    	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11,GPIO_PIN_RESET);
+
+
+    	HAL_SPI_Receive(&hspi3, (uint8_t*)buffer_spi, 3,50);
+
+		HAL_GPIO_TogglePin(GPIOC, I_GAIN_G2_Pin); //just debugggin gindicator
     }
 }
 
