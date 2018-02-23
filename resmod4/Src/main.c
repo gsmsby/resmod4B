@@ -283,7 +283,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 800;
+  htim2.Init.Period = 6400;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -388,7 +388,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim2)
     	DWT_Delay_us (1);
     	HAL_SPI_Receive(&hspi3, (uint8_t*)buffer_spi, 3,50);
 
-
+    	DWT_Delay_us (1);
 		HAL_GPIO_TogglePin(GPIOC, I_GAIN_G2_Pin); //just a debuggin gindicator
     }
 }
